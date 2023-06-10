@@ -1,0 +1,148 @@
+//////  DESCRIPTION: ///////
+The board class has the responsibility of managing the beans, holes, the numbers around it, as well as the moving of the beans around the board. It uses the data structure vector <int> to manage both players sides, as well as the beans and holes for the board
+
+The Player class starts as an abstract class with three derived classes of it. There is a HumanPlayer which is controlled by the user, the BadPlayer which simply selects the left most option every time, and the SmartPlayer, who uses a game tree to find the optimal decision.
+
+The Game class is in charge of displaying the output, keeping track of the status and turns in the game, and well as allowing for it to run properly and let people follow along.
+
+Board functions:
+sow:
+checks to see for proper input, if not return false
+if its norths turn, we check the beans, and then traverse through north, subtracting one bean at a time and adding one to the following pots.
+Once we reach the POT, we swich over and add them to the south pot, but make sure we skip the south pot.
+This process repeats while we still have beans in our hand.
+if its souths turn, we do the exact same thing but flip it instead, traversing through south.
+However, because the format of the data structure we need to have a separate if statement to add to the SOUTH pot.
+once we do that, we switch over and add to the north pot.
+
+Player Functions:
+Human::chooseMove
+if theres no beans, we just return -1 we have to ask the user to enter a hole, but if they mess up by giving too low, too high, or any invalid input, we redo the loop until its right
+once we get a valid input we return that hole;
+
+Smart::chooseMove:
+if theres no valid input possible, return -1,
+traverse through the holes finding valid beans,
+if you find one where you can sow, or that you can make another move, or that you can capture, then you call minimax with the max
+if you cannot, you call minimax with the min
+check the two moves and set the best one to the greater one
+
+Smart::evaluate:
+if the side whos turn it is has more beans then that side gets a positive returned
+if the side whos turn it is has less beans then that side gets a negative returned
+if the sides are equal a tie of 0 is returned
+
+smart::minimax:
+if there are no beans or depth of 0 or the timer is past 5 seconds call evaluate,
+otherwise we go through the steps of the maximizer of its true and make besthole negative, and again check if we can sow on a test board, if we can capture, or if we can get another turn.
+if any of those are possible we call minimax again with the max, if its not possible we call minimax with the min
+we check our bestvalue and new max and whichever is bigger is our new bestvalue
+if the maximizer is false, then we have to proceed with the minimizer, in this sitution we get a positive besthole. we again check if we can sow on a test board, if we can capture, or if we can get another turn.
+this time if we can, we call the minimax with th with the maximizer for for the opponents side
+and if we cannot, we call the minimax with the minimizer for the opponenets side
+we check our bestvalue and new max and whichever is bigger is our new bestvalue
+
+Game functions
+move:
+Attempt to make a complete move for the player playing side s.
+Whenever the player gets an additional turn, you should display the board so someone looking at the screen can follow what's happening.
+If the move can be completed, return true; if not, because the move is not yet completed but side s has no holes with beans to pick up and sow,
+sweep any beans in s's opponent's holes into that opponent's pot and return false.
+
+play:
+Display the progress of the game in a manner of your choosing, provided that someone looking at the screen can follow what's happening.
+If neither player is interactive, then to keep the display from quickly scrolling through the whole game,
+it would be reasonable periodically to prompt the viewer to press ENTER to continue and not proceed until ENTER is pressed.
+Announces the winner at the end of the game. Y
+ou can apportion to your liking the responsibility for displaying the board between this function and the move function.
+
+
+//////  TEST CASES: ///////
+
+BOARD:
+    Board no(-1, -1);
+    assert(no.holes() == 1);
+    assert(no.beans(NORTH, 0) == 0);
+    assert(no.beans(SOUTH, 0) == 0);
+    assert(no.beansInPlay(NORTH) == 0);
+    assert(no.beansInPlay(SOUTH) == 0);
+    assert(no.totalBeans() == 0);
+    
+    Board a(6, 4);
+    assert(b.beans(NORTH, 0) == 0);
+    assert(b.beans(SOUTH, 0) == 0);
+    for (int i = 1; i <= 6; i++)
+    {
+        assert(b.beans(NORTH, i) == 4); //checks that beans() works as well
+        assert(b.beans(SOUTH, i) == 4);
+    }
+    assert(b.beansInPlay(NORTH) == 24);
+    assert(b.beansInPlay(SOUTH) == 24);
+    assert(b.totalBeans() == 48);
+
+    Board test(2, 2);
+    Board hello(1, 1);
+    test = hello;
+    assert(test.holes() == 1 && test.beans(NORTH,1) == 1 && test.beans(SOUTH,1) == 1 && test.totalBeans() == 2 && test.beans(NORTH, POT) == 0);
+    b.setBeans(NORTH, 0, 0);
+    assert(b.totalBeans() == 48);
+    Board b1(2, 0);
+    b1.setBeans(NORTH, 1, 5);
+    assert(b1.beans(NORTH, 0) == 1 && b1.beans(NORTH, 1) == 1 && b1.beans(NORTH, 2) == 1 && b1.beans(SOUTH, 0) == 0 && b1.beans(SOUTH, 1) == 1 && b1.beans(SOUTH, 2) == 1 && es == NORTH && eh == 1);
+    assert(!b1.sow(NORTH, 0, es, eh)); //cannot sow a pot
+    Board b2(2, 0);
+    b2.setBeans(SOUTH, 1, 8);
+
+PLAYER:
+    HumanPlayer hp("Marge");
+    assert(hp.name() == "Marge"  &&  hp.isInteractive());
+    BadPlayer bp("Homer");
+    assert(bp.name() == "Homer" && !bp.isInteractive());
+    SmartPlayer sp("Lisa");
+    assert(sp.name() == "Lisa" && !sp.isInteractive());
+    Board player(3, 2);
+    player.setBeans(SOUTH, 2, 0);
+    player.setBeans(SOUTH, 1, 0);
+    player.setBeans(SOUTH, 3, 0);
+    assert(bp.chooseMove(player, SOUTH) == -1);
+    hp.chooseMove(player, SOUTH);
+    
+SMARTPLAYER:
+    Board p1(4, 0);
+    p1.setBeans(NORTH, 0, 4);
+    p1.setBeans(NORTH, 1, 0);
+    p1.setBeans(NORTH, 2, 0);
+    p1.setBeans(NORTH, 3, 1);
+    p1.setBeans(SOUTH, 0, 1);
+    p1.setBeans(SOUTH, 1, 2);
+    p1.setBeans(SOUTH, 2, 0);
+    p1.setBeans(SOUTH, 4, 1);
+    assert(sp.chooseMove(p1, SOUTH) == 4 || 1);
+    Board p2(2, 1);
+    assert(sp.chooseMove(p1, SOUTH) == 2);
+    
+GAME:
+    BadPlayer bp1("Bart");
+    BadPlayer bp2("Homer");
+    Board b(3, 0);
+    b.setBeans(SOUTH, 1, 2);
+    b.setBeans(NORTH, 2, 1);
+    b.setBeans(NORTH, 3, 2);
+    Game g(b, &bp1, &bp2);
+    bool over;
+    bool hasWinner;
+    Side winner;
+    g.status(over, hasWinner, winner);
+    assert(!over && !hasWinner && g.beans(NORTH, POT) == 0 && g.beans(SOUTH, POT) == 0 &&
+        g.beans(NORTH, 1) == 0 && g.beans(NORTH, 2) == 1 && g.beans(NORTH, 3) == 2 &&
+        g.beans(SOUTH, 1) == 2 && g.beans(SOUTH, 2) == 0 && g.beans(SOUTH, 3) == 0);
+    g.move();
+    Board c(2, 1);
+    Game h(c, &bp1, &bp2);
+    h.status(over, hasWinner, winner);
+    assert(!over && !hasWinner && h.beans(NORTH, POT) == 0 && h.beans(SOUTH, POT) == 0 &&
+        h.beans(NORTH, 1) == 1 && h.beans(NORTH, 2) == 1 &&
+        h.beans(SOUTH, 1) == 1 && h.beans(SOUTH, 2) == 1 );
+    h.move();
+    
+    
